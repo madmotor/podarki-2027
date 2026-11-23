@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#5b0f24">
+  <meta name="theme-color" content="#24213a">
   <meta name="description" content="Список людей, подарков и покупок">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -34,9 +34,18 @@
         <input id="search" type="search" placeholder="Найти человека или подарок" autocomplete="off">
       </label>
       <div class="tabs" role="tablist" aria-label="Разделы">
-        <button class="tab active" data-tab="people" role="tab" aria-selected="true">Люди <span id="peopleCount"></span></button>
-        <button class="tab" data-tab="shopping" role="tab" aria-selected="false">Купить <span id="todoCount"></span></button>
-        <button class="tab" data-tab="budget" role="tab" aria-selected="false">Бюджет</button>
+        <button class="tab active" data-tab="people" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="tab-label">Люди</span><span class="tab-count" id="peopleCount"></span>
+        </button>
+        <button class="tab" data-tab="shopping" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <span class="tab-label">Купить</span><span class="tab-count" id="todoCount"></span>
+        </button>
+        <button class="tab" data-tab="budget" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><circle cx="16" cy="15" r="1"/></svg>
+          <span class="tab-label">Бюджет</span>
+        </button>
       </div>
       <div id="filters" class="filters" aria-label="Фильтр">
         <button class="chip active" data-filter="all">Все</button>
@@ -71,4 +80,6 @@
   <script src="app.js"></script>
 </body>
 </html>
+
+
 

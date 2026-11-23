@@ -1,5 +1,5 @@
 const STORAGE_KEY = "ny-gifts-2027-v3";
-const APP_VERSION = 4;
+const APP_VERSION = 5;
 const params = new URLSearchParams(location.search);
 
 const SEED_NAMES = [
@@ -570,6 +570,7 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(error => console.warn("Service worker не зарегистрирован.", error));
   });
 }
+
 
 
 

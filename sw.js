@@ -1,4 +1,4 @@
-const CACHE_NAME = "ny-gifts-2027-v4";
+const CACHE_NAME = "ny-gifts-2027-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -39,6 +39,7 @@ self.addEventListener("fetch", event => {
       )
   );
 });
+
 
 
 
