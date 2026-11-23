@@ -104,7 +104,9 @@ function plural(n, forms) {
 }
 
 function initials(name) {
-  return String(name || "?").trim().split(/\s+/).slice(0, 2).map(part => part[0] || "").join("").toUpperCase() || "?";
+  const parts = String(name || "?").replace(/[()]/g, " ").trim().split(/\s+/).filter(Boolean);
+  const letters = parts.map(part => part[0]).filter(char => /[A-Za-zА-Яа-яЁё]/.test(char));
+  return (letters.slice(0, 2).join("") || "?").toUpperCase();
 }
 
 function statsFor(person) {
@@ -511,6 +513,7 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(error => console.warn("Service worker не зарегистрирован.", error));
   });
 }
+
 
 
 
