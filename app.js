@@ -1,6 +1,36 @@
-const STORAGE_KEY = "ny-gifts-2027-v2";
-const APP_VERSION = 2;
+const STORAGE_KEY = "ny-gifts-2027-v3";
+const APP_VERSION = 3;
 const params = new URLSearchParams(location.search);
+
+const SEED_NAMES = [
+  "Влад Нежинский",
+  "Надя 8яПалата",
+  "Лена Короденко",
+  "Наташа (Мама)",
+  "Регина Бражникова",
+  "Татьяна Ивановна",
+  "Марина (Т.И.)",
+  "Максим Хурса",
+  "Алексей Сергушин",
+  "Краснов С.С.",
+  "Маслич Наташа",
+  "Савускан Е.П.",
+  "Чумак В.М.",
+  "Ластавецкая Анита",
+  "Юля Секач",
+  "Бешенный С.М.",
+  "Даня Сусло",
+  "Вернигора С.Ю.",
+  "Денис Денисюк",
+  "Семья Пасюк",
+  "Семья Загорулько",
+  "Семья Гуркиных"
+];
+
+const SEED_PEOPLE = SEED_NAMES.map((name, index) => ({
+  id: "person-" + String(index + 1).padStart(2, "0"),
+  name
+}));
 
 const ui = {
   view: params.get("tab") === "shopping" ? "shopping" : "people",
@@ -45,7 +75,7 @@ function loadPeople() {
   } catch (error) {
     console.warn("Не удалось прочитать сохранённые данные.", error);
   }
-  return [];
+  return SEED_PEOPLE.map(normalisePerson);
 }
 
 function savePeople() {
@@ -481,5 +511,6 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(error => console.warn("Service worker не зарегистрирован.", error));
   });
 }
+
 
 
