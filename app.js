@@ -1,5 +1,5 @@
 const STORAGE_KEY = "ny-gifts-2027-v3";
-const APP_VERSION = 3;
+const APP_VERSION = 4;
 const params = new URLSearchParams(location.search);
 
 const SEED_NAMES = [
@@ -33,13 +33,14 @@ const SEED_PEOPLE = SEED_NAMES.map((name, index) => ({
 }));
 
 const ui = {
-  view: params.get("tab") === "shopping" ? "shopping" : "people",
+  view: params.get("tab") === "budget" ? "budget" : params.get("tab") === "shopping" ? "shopping" : "people",
   filter: "all",
   search: "",
   selectedId: null
 };
 
 let people = loadPeople();
+let totalBudget = loadBudget();
 
 function uid() {
   return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
@@ -78,9 +79,22 @@ function loadPeople() {
   return SEED_PEOPLE.map(normalisePerson);
 }
 
+function loadBudget() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return toNumber(parsed?.budget);
+    }
+  } catch (error) {
+    console.warn("Не удалось прочитать бюджет.", error);
+  }
+  return 0;
+}
+
 function savePeople() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: APP_VERSION, savedAt: new Date().toISOString(), people }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: APP_VERSION, savedAt: new Date().toISOString(), budget: totalBudget, people }));
   } catch (error) {
     console.warn("Не удалось сохранить данные.", error);
   }
@@ -105,7 +119,7 @@ function plural(n, forms) {
 
 function initials(name) {
   const parts = String(name || "?").replace(/[()]/g, " ").trim().split(/\s+/).filter(Boolean);
-  const letters = parts.map(part => part[0]).filter(char => /[A-Za-zА-Яа-яЁё]/.test(char));
+  const letters = parts.map(part => part[0]).filter(char => /[A-Za-zА-Яа-яЁё0-9]/.test(char));
   return (letters.slice(0, 2).join("") || "?").toUpperCase();
 }
 
@@ -164,7 +178,7 @@ function renderSummary() {
     <div class="stat"><span>Людей</span><strong>${people.length}</strong><small>${people.length ? (g.emptyPeople ? `${g.emptyPeople} без подарков` : "в списке") : "пусто"}</small></div>
     <div class="stat"><span>Подарков</span><strong>${g.totalItems}</strong><small>${g.boughtItems} куплено</small></div>
     <div class="stat"><span>Собрано</span><strong>${percent}%</strong><div class="mini-bar"><i style="width:${percent}%"></i></div><small>${g.boughtItems} из ${g.totalItems}</small></div>
-    <div class="stat"><span>Потрачено</span><strong>${money(g.spent)}</strong><small>введено вручную</small></div>
+    <div class="stat"><span>Потрачено</span><strong>${money(g.spent)}</strong><small>${totalBudget ? "из " + money(totalBudget) : "бюджет не задан"}</small></div>
   `;
 }
 
@@ -300,11 +314,42 @@ function renderShopping() {
     : `<div class="empty"><strong>Пока нечего покупать</strong><span>${people.length ? "Все подарки отмечены купленными." : "Сначала добавь людей и подарки."}</span></div>`;
 }
 
+function renderBudget() {
+  const g = globalStats();
+  const spent = g.spent;
+  const remaining = totalBudget - spent;
+  const used = totalBudget ? Math.min(100, Math.round((spent / totalBudget) * 100)) : 0;
+  const remainingBar = totalBudget ? Math.max(0, Math.round((remaining / totalBudget) * 100)) : 0;
+  const over = totalBudget > 0 && spent > totalBudget;
+  const spenders = people.filter(person => person.spent > 0).sort((a, b) => b.spent - a.spent);
+
+  document.getElementById("budgetView").innerHTML = `
+    <div class="section-head"><div><h2>Бюджет</h2><p>${totalBudget ? "Общий лимит и расходы" : "Введи сумму, которую готов потратить"}</p></div></div>
+    <div class="budget-card ${over ? "over" : ""}">
+      <div class="budget-hero">
+        <div><span>Общий бюджет</span><strong>${totalBudget ? money(totalBudget) : "не задан"}</strong></div>
+        <div class="budget-used">${totalBudget ? used + "%" : "—"}<small>использовано</small></div>
+      </div>
+      <div class="budget-bar"><i style="width:${remainingBar}%"></i></div>
+      <div class="budget-legend">
+        <span>Потрачено <b>${money(spent)}</b></span>
+        <span>Осталось <b class="${over ? "bad" : ""}">${totalBudget ? money(Math.max(0, remaining)) : "—"}</b></span>
+      </div>
+      ${over ? `<div class="budget-warning">Перебор на ${money(spent - totalBudget)}</div>` : ""}
+      <form class="budget-form" data-form="set-budget">
+        <label class="field"><span>Общий бюджет, ₽</span><input name="budget" inputmode="decimal" value="${totalBudget || ""}" placeholder="Например, 50 000"></label>
+        <button class="primary" type="submit">Сохранить</button>
+      </form>
+    </div>
+    ${spenders.length ? `<div class="budget-people"><h3>Кто сколько</h3>${spenders.map(person => `<div class="budget-person"><span>${esc(person.name)}</span><b>${money(person.spent)}</b></div>`).join("")}</div>` : `<div class="empty"><strong>Пока нет расходов</strong><span>Введи суммы в карточках людей — они появятся здесь.</span></div>`}
+  `;
+}
+
 function updateControls() {
   document.getElementById("peopleCount").textContent = people.length;
   document.getElementById("todoCount").textContent = todoCount();
   document.querySelectorAll(".tab").forEach(button => {
-    const active = ui.view === "shopping" ? button.dataset.tab === "shopping" : button.dataset.tab === "people";
+    const active = button.dataset.tab === ui.view || (ui.view === "person" && button.dataset.tab === "people");
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", String(active));
   });
@@ -312,10 +357,12 @@ function updateControls() {
     button.classList.toggle("active", button.dataset.filter === ui.filter);
   });
   document.getElementById("toolbar").hidden = ui.view === "person";
+  document.getElementById("searchWrap").hidden = ui.view === "budget";
   document.getElementById("filters").hidden = ui.view !== "people";
   document.getElementById("peopleView").hidden = ui.view !== "people";
   document.getElementById("personView").hidden = ui.view !== "person";
   document.getElementById("shoppingView").hidden = ui.view !== "shopping";
+  document.getElementById("budgetView").hidden = ui.view !== "budget";
 }
 
 function render() {
@@ -323,6 +370,7 @@ function render() {
   renderPeople();
   renderPersonDetail();
   renderShopping();
+  renderBudget();
   updateControls();
 }
 
@@ -391,7 +439,7 @@ function deleteItem(personId, itemId) {
 }
 
 function exportData() {
-  const payload = { version: APP_VERSION, exportedAt: new Date().toISOString(), people };
+  const payload = { version: APP_VERSION, exportedAt: new Date().toISOString(), budget: totalBudget, people };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -412,6 +460,7 @@ function importData(event) {
       if (!parsed || !Array.isArray(parsed.people)) throw new Error("bad format");
       if (!window.confirm("Импорт заменит текущий список. Продолжить?")) return;
       people = parsed.people.map(normalisePerson);
+      totalBudget = toNumber(parsed.budget);
       ui.view = "people";
       ui.selectedId = null;
       savePeople();
@@ -443,11 +492,19 @@ document.addEventListener("input", event => {
 });
 
 document.addEventListener("submit", event => {
-  const form = event.target.closest('[data-form="add-item"]');
+  const form = event.target.closest("form[data-form]");
   if (!form) return;
   event.preventDefault();
-  const input = form.querySelector('input[name="label"]');
-  addItem(form.dataset.person, input?.value);
+  if (form.dataset.form === "set-budget") {
+    totalBudget = toNumber(form.querySelector('input[name="budget"]')?.value);
+    savePeople();
+    render();
+    return;
+  }
+  if (form.dataset.form === "add-item") {
+    const input = form.querySelector('input[name="label"]');
+    addItem(form.dataset.person, input?.value);
+  }
 });
 
 document.addEventListener("click", event => {
@@ -513,6 +570,15 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(error => console.warn("Service worker не зарегистрирован.", error));
   });
 }
+
+
+
+
+
+
+
+
+
 
 
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0c1b17">
+  <meta name="theme-color" content="#5b0f24">
   <meta name="description" content="Список людей, подарков и покупок">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -29,13 +29,14 @@
     <section id="summary" class="summary" aria-label="Сводка"></section>
 
     <div id="toolbar" class="toolbar">
-      <label class="search-wrap">
+      <label class="search-wrap" id="searchWrap">
         <span class="search-icon" aria-hidden="true">⌕</span>
         <input id="search" type="search" placeholder="Найти человека или подарок" autocomplete="off">
       </label>
       <div class="tabs" role="tablist" aria-label="Разделы">
         <button class="tab active" data-tab="people" role="tab" aria-selected="true">Люди <span id="peopleCount"></span></button>
         <button class="tab" data-tab="shopping" role="tab" aria-selected="false">Купить <span id="todoCount"></span></button>
+        <button class="tab" data-tab="budget" role="tab" aria-selected="false">Бюджет</button>
       </div>
       <div id="filters" class="filters" aria-label="Фильтр">
         <button class="chip active" data-filter="all">Все</button>
@@ -47,6 +48,7 @@
     <section id="peopleView" class="people-view" aria-live="polite"></section>
     <section id="personView" class="person-view" hidden aria-live="polite"></section>
     <section id="shoppingView" class="shopping-view" hidden aria-live="polite"></section>
+    <section id="budgetView" class="budget-view" hidden aria-live="polite"></section>
 
     <section class="backup-panel">
       <div>
@@ -69,3 +71,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+
