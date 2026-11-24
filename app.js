@@ -1,5 +1,5 @@
 const STORAGE_KEY = "ny-gifts-2027-v3";
-const APP_VERSION = 5;
+const APP_VERSION = 6;
 const params = new URLSearchParams(location.search);
 
 const SEED_NAMES = [
@@ -24,7 +24,8 @@ const SEED_NAMES = [
   "Денис Денисюк",
   "Семья Пасюк",
   "Семья Загорулько",
-  "Семья Гуркиных"
+  "Семья Гуркиных",
+  "Кириенко Игорь"
 ];
 
 const SEED_PEOPLE = SEED_NAMES.map((name, index) => ({
@@ -71,7 +72,18 @@ function loadPeople() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.people)) return parsed.people.map(normalisePerson);
+      if (parsed && Array.isArray(parsed.people)) {
+        const list = parsed.people.map(normalisePerson);
+        const migrationKey = "ny-gifts-2027-kirienko-added-v1";
+        if (!localStorage.getItem(migrationKey)) {
+          if (!list.some(person => person.name === "Кириенко Игорь")) {
+            list.push(normalisePerson({ id: "person-kirienko", name: "Кириенко Игорь" }));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, version: APP_VERSION, people: list }));
+          }
+          localStorage.setItem(migrationKey, "1");
+        }
+        return list;
+      }
     }
   } catch (error) {
     console.warn("Не удалось прочитать сохранённые данные.", error);
@@ -570,6 +582,7 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(error => console.warn("Service worker не зарегистрирован.", error));
   });
 }
+
 
 
 
