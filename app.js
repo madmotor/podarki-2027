@@ -1,5 +1,5 @@
 const STORAGE_KEY = "ny-gifts-2027-v3";
-const APP_VERSION = 6;
+const APP_VERSION = 7;
 const params = new URLSearchParams(location.search);
 
 const SEED_NAMES = [
@@ -25,7 +25,8 @@ const SEED_NAMES = [
   "Семья Пасюк",
   "Семья Загорулько",
   "Семья Гуркиных",
-  "Кириенко Игорь"
+  "Кириенко Игорь",
+  "Екатерина ЦФО"
 ];
 
 const SEED_PEOPLE = SEED_NAMES.map((name, index) => ({
@@ -74,13 +75,21 @@ function loadPeople() {
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.people)) {
         const list = parsed.people.map(normalisePerson);
-        const migrationKey = "ny-gifts-2027-kirienko-added-v1";
-        if (!localStorage.getItem(migrationKey)) {
-          if (!list.some(person => person.name === "Кириенко Игорь")) {
-            list.push(normalisePerson({ id: "person-kirienko", name: "Кириенко Игорь" }));
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, version: APP_VERSION, people: list }));
+        const migrations = [
+          { key: "ny-gifts-2027-kirienko-added-v1", id: "person-kirienko", name: "Кириенко Игорь" },
+          { key: "ny-gifts-2027-ekaterina-cfo-added-v1", id: "person-ekaterina-cfo", name: "Екатерина ЦФО" }
+        ];
+        let changed = false;
+        for (const migration of migrations) {
+          if (localStorage.getItem(migration.key)) continue;
+          if (!list.some(person => person.name === migration.name)) {
+            list.push(normalisePerson({ id: migration.id, name: migration.name }));
+            changed = true;
           }
-          localStorage.setItem(migrationKey, "1");
+          localStorage.setItem(migration.key, "1");
+        }
+        if (changed) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...parsed, version: APP_VERSION, people: list }));
         }
         return list;
       }
@@ -582,6 +591,7 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(error => console.warn("Service worker не зарегистрирован.", error));
   });
 }
+
 
 
 
